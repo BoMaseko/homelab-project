@@ -1,12 +1,9 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  creationTimestamp: "2025-12-18T10:23:21Z"
   labels:
     kubernetes.io/metadata.name: bongz-space
-  name: bongz-space
-  resourceVersion: "659164"
-  uid: 55b15654-d8e1-4a8d-88d4-5258bee1de8f
+  name: mealie
 spec:
   finalizers:
   - kubernetes

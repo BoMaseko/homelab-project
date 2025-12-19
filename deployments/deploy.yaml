@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: bongz
+  name: bongz-deploy
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: bongz
+  template:
+    metadata:
+      labels:
+        app: bongz
+    spec:
+      containers:
+        - image: httpd:alpine3.19
+          name: httpd
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
