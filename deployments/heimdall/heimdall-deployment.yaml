@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heimdall
+  namespace: heimdall
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: heimdall
+  template:
+    metadata:
+      labels:
+        app: heimdall
+    spec:
+      containers:
+        - name: heimdall
+          image: linuxserver/heimdall:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: heimdall-config
+              mountPath: /config
+      volumes:
+        - name: heimdall-config
+          persistentVolumeClaim:
+            claimName: heimdall-pvc
+

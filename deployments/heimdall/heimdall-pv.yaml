@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: heimdall-pv
+  namespace: heimdall
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/heimdall  # make sure this folder exists on your node
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+
