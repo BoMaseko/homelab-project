@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+  namespace: homepage
+data:
+  settings.yaml: |
+    title: Home Lab Dashboard
+    theme: dark
+    color: slate
+    headerStyle: boxed
+    layout:
+      Infrastructure:
+        style: row
+        columns: 3
+
+  services.yaml: |
+    - Infrastructure:
+        - Heimdall:
+            icon: heimdall
+            href: http://10.0.0.103:30090   
+        - Mealie:
+            icon: https://mealie.io/logo.png
+            href: http://mealie.mealie.svc.cluster.local:9000
+            color: green
+
+  widgets.yaml: |
+    - resources:
+        cpu: true
+        memory: true
+        disk: /
+
+  bookmarks.yaml: |
+    - DevOps:
+        - GitHub:
+            href: https://github.com
+

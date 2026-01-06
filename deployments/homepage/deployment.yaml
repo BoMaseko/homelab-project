@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homepage
+  template:
+    metadata:
+      labels:
+        app: homepage
+    spec:
+      containers:
+        - name: homepage
+          image: ghcr.io/gethomepage/homepage:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: "10.0.0.103:32000,10.0.0.116:32000,10.0.0.117:32000,localhost"
+          volumeMounts:
+            - name: homepage-settings
+              mountPath: /app/config/settings.yaml
+              subPath: settings.yaml
+            - name: homepage-services
+              mountPath: /app/config/services.yaml
+              subPath: services.yaml
+            - name: homepage-widgets
+              mountPath: /app/config/widgets.yaml
+              subPath: widgets.yaml
+            - name: homepage-bookmarks
+              mountPath: /app/config/bookmarks.yaml
+              subPath: bookmarks.yaml
+            - name: homepage-logs
+              mountPath: /app/config/logs
+      volumes:
+        - name: homepage-settings
+          configMap:
+            name: homepage-config
+            items:
+              - key: settings.yaml
+                path: settings.yaml
+        - name: homepage-services
+          configMap:
+            name: homepage-config
+            items:
+              - key: services.yaml
+                path: services.yaml
+        - name: homepage-widgets
+          configMap:
+            name: homepage-config
+            items:
+              - key: widgets.yaml
+                path: widgets.yaml
+        - name: homepage-bookmarks
+          configMap:
+            name: homepage-config
+            items:
+              - key: bookmarks.yaml
+                path: bookmarks.yaml
+        - name: homepage-logs
+          emptyDir: {}
+

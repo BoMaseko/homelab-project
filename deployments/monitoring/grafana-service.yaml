@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: prometheus-stack
+    meta.helm.sh/release-namespace: monitoring
+  labels:
+    app.kubernetes.io/instance: prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/version: 12.3.1
+    helm.sh/chart: grafana-10.5.2
+  name: prometheus-stack-grafana
+  namespace: monitoring
+spec:
+  type: NodePort   # changed from ClusterIP
+  ports:
+  - name: http-web
+    port: 80
+    targetPort: grafana
+    protocol: TCP
+    nodePort: 30030   # optional, Kubernetes can assign automatically if you remove this
+  selector:
+    app.kubernetes.io/instance: prometheus-stack
+    app.kubernetes.io/name: grafana
+  sessionAffinity: None
+

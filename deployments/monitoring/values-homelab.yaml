@@ -1,0 +1,71 @@
+# values-homelab.yaml
+# Optimized for small clusters / homelabs
+
+global:
+  # Reduce default resources
+  storageClass: "local-path"
+
+prometheus:
+  prometheusSpec:
+    # Reduce resource usage
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+    # Reduce replicas to save resources
+    replicas: 1
+    retention: "7d"
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 50m
+      limits:
+        memory: 128Mi
+        cpu: 100m
+
+grafana:
+  enabled: true
+  # NodePort for easy homelab access
+  service:
+    type: NodePort
+    nodePort: 32001
+  adminUser: admin
+  adminPassword: prom-1234
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+  persistence:
+    enabled: false  # Disable PVC to simplify homelab setup
+
+kubeStateMetrics:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 100m
+      memory: 100Mi
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+
+nodeExporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 100m
+      memory: 100Mi
+

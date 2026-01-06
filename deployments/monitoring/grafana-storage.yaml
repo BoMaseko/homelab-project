@@ -1,0 +1,7 @@
+grafana:
+  resources:
+    requests:
+      ephemeral-storage: "500Mi"
+    limits:
+      ephemeral-storage: "1Gi"
+
