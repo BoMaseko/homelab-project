@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-express-config
+  namespace: mongo-express
+data:
+  ME_CONFIG_MONGODB_SERVER: "mongodb-service"   # MongoDB service name
+  ME_CONFIG_MONGODB_PORT: "27017"
+  ME_CONFIG_SITE_BASEURL: "/"                   # Optional, default is "/"
+  ME_CONFIG_OPTIONS_EDITORTHEME: "default"      # Optional, UI theme
+  ME_CONFIG_BASICAUTH_USERNAME: "admin"        # Optional: Basic auth username
+  ME_CONFIG_BASICAUTH_PASSWORD: "admin"        # Optional: Basic auth password
+
