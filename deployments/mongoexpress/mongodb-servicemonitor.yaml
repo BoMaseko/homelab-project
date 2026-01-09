@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mongodb-exporter
+  namespace: mongo-express   # <--- change this!
+  labels:
+    app.kubernetes.io/name: prometheus-mongodb-exporter
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-mongodb-exporter
+  namespaceSelector:
+    matchNames:
+      - mongo-express
+  endpoints:
+    - port: http
+      interval: 15s
+

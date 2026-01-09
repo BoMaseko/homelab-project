@@ -1,0 +1,55 @@
+
+replicaCount: 1  
+
+# ----------------------------
+# Image Configuration
+# ----------------------------
+
+
+
+
+# ----------------------------
+# MongoDB Connection
+# ----------------------------
+mongodb:
+  uri: "mongodb://admin:admin123@mongodb-service:27017/?authSource=admin"
+
+# ----------------------------
+# Resources to prevent evictions
+# ----------------------------
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# ----------------------------
+# Persistence
+# ----------------------------
+persistence:
+  enabled: false  # Exporter itself doesn't need persistence
+  # If you want persistence, configure path, size, and storageClass
+
+# ----------------------------
+# Service
+# ----------------------------
+service:
+  type: ClusterIP
+  port: 9216  # Prometheus scrapes this port
+
+# ----------------------------
+# Prometheus Scraping
+# ----------------------------
+serviceMonitor:
+  enabled: true
+  namespace: monitoring       # Prometheus namespace
+  interval: 15s
+  scrapeTimeout: 10s
+  additionalLabels:
+    release: prometheus
+  selector:
+    matchLabels:
+      app: mongodb-exporter
+
