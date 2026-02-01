@@ -18,6 +18,15 @@ spec:
           image: linuxserver/heimdall:latest
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+              ephemeral-storage: "100Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+              ephemeral-storage: "500Mi"
           volumeMounts:
             - name: heimdall-config
               mountPath: /config

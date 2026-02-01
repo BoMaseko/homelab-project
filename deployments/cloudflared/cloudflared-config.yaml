@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: cloudflared
+data:
+  config.yaml: |
+    tunnel: 88def58d-6070-4e49-ab4b-9d57f88d912c
+    credentials-file: /etc/cloudflared/credentials/credentials.json
+
+    ingress:
+      - hostname: grafana.maseko-lab.xyz
+        service: http://10.104.252.118:80
+        originRequest:
+          noTLSVerify: true
+          header:
+            Host: grafana.maseko-lab.xyz
+      - service: http_status:404
+
