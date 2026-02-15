@@ -18,6 +18,15 @@ spec:
           image: linuxserver/heimdall:latest
           ports:
             - containerPort: 80
+          env: 
+            - name: APP_URL
+              value: "http://heimdall.maseko-lab.xyz"
+            - name: TRUSTED_PROXIES
+              value: "*"
+            - name: FORCE_HTTPS
+              value: "false"
+            - name: LISTEN_ADDRESS
+              value: "0.0.0.0"
           resources:
             requests:
               cpu: "100m"

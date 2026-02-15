@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin-exporter
+  namespace: monitoring
+  labels:
+    app: jellyfin-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyfin-exporter
+  template:
+    metadata:
+      labels:
+        app: jellyfin-exporter
+    spec:
+      containers:
+        - name: jellyfin-exporter
+          image: rebelcore/jellyfin_exporter:latest
+          env:
+            - name: JELLYFIN_URL
+              value: "http://jellyfin.jellyfin.svc.cluster.local:8096"  # Kubernetes service
+            - name: JELLYFIN_API_KEY
+              value: "4bd23e8d01634eecbf60f4b835cc9930"
+          ports:
+            - containerPort: 9594
+      imagePullSecrets:
+        - name: ghcr-secret 
+

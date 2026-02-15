@@ -13,17 +13,37 @@ spec:
       labels:
         app: jellyfin
     spec:
+      securityContext:
+        fsGroup: 1000
+
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /config /cache /media || true
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: jellyfin-config
+              mountPath: /config
+            - name: jellyfin-cache
+              mountPath: /cache
+            - name: jellyfin-media
+              mountPath: /media
+
       containers:
         - name: jellyfin
           image: jellyfin/jellyfin:latest
           env:
-          - name: JELLYFIN_PUBLISHED_SERVER_URL
-            value: "https://jellyfin.maseko-lab.xyz"
-          - name: JELLYFIN_BASEURL
-            value: "/"
+            - name: JELLYFIN_PUBLISHED_SERVER_URL
+              value: "https://jellyfin.maseko-lab.xyz"
+            - name: JELLYFIN_BASEURL
+              value: "/"
           ports:
             - containerPort: 8096
-          readinessProbe: 
+          readinessProbe:
             httpGet:
               path: /health
               port: 8096
@@ -56,6 +76,7 @@ spec:
             limits:
               cpu: "1"
               memory: "2Gi"
+
       volumes:
         - name: jellyfin-media
           hostPath:

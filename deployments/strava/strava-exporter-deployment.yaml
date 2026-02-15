@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strava-exporter
+  namespace: monitoring
+  labels:
+    app: strava-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: strava-exporter
+  template:
+    metadata:
+      labels:
+        app: strava-exporter
+    spec:
+      containers:
+        - name: strava-exporter
+          image: strava-exporter:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9400
+              name: metrics
+          volumeMounts:
+            - name: strava-tokens
+              mountPath: /app/strava_tokens.json
+              subPath: strava_tokens.json
+      volumes:
+        - name: strava-tokens
+          secret:
+            secretName: strava-tokens
+

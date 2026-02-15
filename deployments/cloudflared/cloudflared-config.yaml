@@ -9,11 +9,10 @@ data:
     credentials-file: /etc/cloudflared/credentials/credentials.json
 
     ingress:
-      - hostname: grafana.maseko-lab.xyz
-        service: http://10.104.252.118:80
+      - hostname: mealie.maseko-lab.xyz
+        service: http://10.104.175.99:9000
         originRequest:
           noTLSVerify: true
-          header:
-            Host: grafana.maseko-lab.xyz
-      - service: http_status:404
+
+      - service: http_status:404   # catch-all for anything else
 
