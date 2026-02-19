@@ -4,10 +4,10 @@ metadata:
   name: heimdall-pvc
   namespace: heimdall
 spec:
+  storageClassName: local-path
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
-  storageClassName: local-path   # <- this line is critical
 
