@@ -5,31 +5,61 @@ import time
 from datetime import datetime
 from prometheus_client import start_http_server, Gauge
 
-run_distance = Gauge("strava_run_distance_meters", "Distance of the last 5 Strava runs", ["name", "date"])
+# Prometheus Metrics
+run_distance = Gauge(
+    "strava_run_distance_meters", "Distance of the last 5 Strava runs", ["name", "date"]
+)
+run_elapsed = Gauge(
+    "strava_run_elapsed_time_seconds", "Elapsed time of runs", ["name", "date"]
+)
+run_moving = Gauge(
+    "strava_run_moving_time_seconds", "Moving time of runs", ["name", "date"]
+)
+run_elevation = Gauge(
+    "strava_run_elevation_gain_meters", "Elevation gain of runs", ["name", "date"]
+)
+run_avg_speed = Gauge(
+    "strava_run_average_speed_meters_per_second", "Average speed of runs", ["name", "date"]
+)
+run_count = Gauge("strava_run_count", "Number of runs returned by exporter")
 
-CLIENT_ID = "201127"
-CLIENT_SECRET = "81845bccc04242e84c70250b4a1de01587c8c092"
-TOKEN_FILE = "strava_tokens.json"
+# Strava API credentials
+CLIENT_ID = os.environ.get("STRAVA_CLIENT_ID", "201127")
+CLIENT_SECRET = os.environ.get("STRAVA_CLIENT_SECRET", "81845bccc04242e84c70250b4a1de01587c8c092")
 
-# Load tokens from file
+# Token paths
+TOKEN_FILE = "/app/data/strava_tokens.json"
+SECRET_FILE = "/tmp/strava_tokens.json"
+
+# Fetch interval (seconds)
+FETCH_INTERVAL = int(os.environ.get("FETCH_INTERVAL", 300))  # 5 minutes recommended
+
+# Ensure token file exists
+os.makedirs("/app/data", exist_ok=True)
+if not os.path.exists(TOKEN_FILE) and os.path.exists(SECRET_FILE):
+    with open(SECRET_FILE, "r") as src, open(TOKEN_FILE, "w") as dst:
+        dst.write(src.read())
+        print(f"Copied secret from {SECRET_FILE} to {TOKEN_FILE}", flush=True)
+
+# Load and save tokens
 def load_tokens():
     if os.path.exists(TOKEN_FILE):
         with open(TOKEN_FILE, "r") as f:
             return json.load(f)
-    else:
-        return {"refresh_token": "", "access_token": ""}
+    return {"refresh_token": "", "access_token": ""}
 
-# Save tokens to file
 def save_tokens(tokens):
     with open(TOKEN_FILE, "w") as f:
         json.dump(tokens, f)
+    print("Tokens saved successfully.", flush=True)
 
-# Refresh access token using stored refresh token
+# Refresh Strava access token
 def refresh_access_token():
     tokens = load_tokens()
     refresh_token = tokens.get("refresh_token")
     if not refresh_token:
-        raise ValueError("No refresh token found in token file!")
+        print("No refresh token found!", flush=True)
+        return None
 
     url = "https://www.strava.com/oauth/token"
     payload = {
@@ -38,42 +68,69 @@ def refresh_access_token():
         "grant_type": "refresh_token",
         "refresh_token": refresh_token
     }
-    resp = requests.post(url, data=payload)
-    data = resp.json()
-    tokens["access_token"] = data["access_token"]
-    tokens["refresh_token"] = data["refresh_token"]
-    save_tokens(tokens)
-    return tokens["access_token"]
 
-# Fetch latest Strava activities
+    try:
+        resp = requests.post(url, data=payload, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        tokens["access_token"] = data["access_token"]
+        tokens["refresh_token"] = data["refresh_token"]
+        save_tokens(tokens)
+        return tokens["access_token"]
+    except Exception as e:
+        print(f"Failed to refresh token: {e}", flush=True)
+        return None
+
+# Fetch latest activities
 def get_latest_activities(limit=5):
     token = refresh_access_token()
+    if not token:
+        print("Skipping activity fetch due to missing token.", flush=True)
+        return
+
     url = "https://www.strava.com/api/v3/athlete/activities"
     headers = {"Authorization": f"Bearer {token}"}
-    resp = requests.get(url, headers=headers)
 
-    if resp.status_code == 200:
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
         activities = resp.json()
-        print(f"Last {limit} activities:")
+        run_count.set(len(activities[:limit]))
+        print(f"Fetched {len(activities[:limit])} activities:", flush=True)
 
         for act in activities[:limit]:
             name = act["name"]
             distance_m = act["distance"]
-            distance_km = round(act["distance"] / 1000, 2)
-            start_time = datetime.fromisoformat(act["start_date_local"].replace("Z",""))
-            print(f"- {name} | {distance_km} km | {start_time}")
-            
-            #Update Prometheus metric
+            elapsed_s = act["elapsed_time"]
+            moving_s = act["moving_time"]
+            elev_m = act.get("total_elevation_gain", 0)
+            avg_speed = act.get("average_speed", 0)
+            start_time = datetime.fromisoformat(act["start_date_local"].replace("Z", ""))
+
+            # Set metrics
             run_distance.labels(name=name, date=start_time.isoformat()).set(distance_m)
+            run_elapsed.labels(name=name, date=start_time.isoformat()).set(elapsed_s)
+            run_moving.labels(name=name, date=start_time.isoformat()).set(moving_s)
+            run_elevation.labels(name=name, date=start_time.isoformat()).set(elev_m)
+            run_avg_speed.labels(name=name, date=start_time.isoformat()).set(avg_speed)
 
-    else:
-        print("Failed to fetch activities:", resp.status_code, resp.text)
+            print(f"- {name} | {round(distance_m/1000,2)} km | {elapsed_s}s elapsed | {moving_s}s moving | {elev_m}m elev | {round(avg_speed,2)} m/s avg", flush=True)
 
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 429:
+            print("Rate limited by Strava. Sleeping 15 minutes...", flush=True)
+            time.sleep(900)  # 15 minutes
+            return
+        print(f"Failed to fetch activities: {e}", flush=True)
+    except Exception as e:
+        print(f"Failed to fetch activities: {e}", flush=True)
+
+# Main
 if __name__ == "__main__":
-    start_http_server(9400) #Prometheus will scrape this port
-    print("Prometheus metrics server running on port 9100...")
+    start_http_server(9400)
+    print("Strava Prometheus exporter running on :9400", flush=True)
 
     while True:
         get_latest_activities(limit=5)
-        time.sleep(60) # 60 seconds 
+        time.sleep(FETCH_INTERVAL)
 

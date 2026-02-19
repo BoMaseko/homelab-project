@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: strava-exporter
+  namespace: monitoring
+  labels:
+    release: prometheus-kube-prometheus   # <- add this to match Prometheus
+spec:
+  selector:
+    matchLabels:
+      app: strava-exporter
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  endpoints:
+    - port: metrics
+      interval: 60s
+

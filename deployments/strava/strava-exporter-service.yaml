@@ -10,4 +10,5 @@ spec:
     - protocol: TCP
       port: 9400
       targetPort: 9400
+      name: metrics
 
