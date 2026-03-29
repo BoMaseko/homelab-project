@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: stirling
+  namespace: stirling
+spec:
+  type: NodePort
+  selector:
+    app: stirling
+  ports:
+    - port: 80         # Service port
+      targetPort: 8080   # Container port
+      nodePort: 30100  # Node port

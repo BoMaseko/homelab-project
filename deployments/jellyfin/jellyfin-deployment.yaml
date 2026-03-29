@@ -13,6 +13,14 @@ spec:
       labels:
         app: jellyfin
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: maseko-webserver-1 
+
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+
       securityContext:
         fsGroup: 1000
 
@@ -88,4 +96,3 @@ spec:
         - name: jellyfin-cache
           persistentVolumeClaim:
             claimName: jellyfin-cache-pvc
-

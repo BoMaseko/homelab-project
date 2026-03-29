@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stirling
+  namespace: stirling
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stirling
+  template:
+    metadata:
+      labels:
+        app: stirling
+    spec:
+      containers:
+        - name: stirling
+          image: stirlingtools/stirling-pdf:latest-ultra-lite
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: stirling-storage
+              mountPath: /data
+            - name: stirling-config
+              mountPath: /config
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+      volumes:
+        - name: stirling-storage
+          persistentVolumeClaim:
+            claimName: stirling-pvc
+
+        - name: stirling-config
+          emptyDir: {}
