@@ -1,0 +1,17 @@
+controller:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 2Gi
+
+  jenkinsPlugins:
+    # Only essential plugins for GitHub + pipeline
+    installPlugins: true
+    plugins:
+      - workflow-aggregator
+      - git
+      - github
+      - blueocean
