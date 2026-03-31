@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploads-data
+  namespace: fun-mascot
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fun-mascot-app
+  namespace: fun-mascot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fun-mascot-app
+  template:
+    metadata:
+      labels:
+        app: fun-mascot-app
+    spec:
+      containers:
+        - name: app
+          image: kbtokzan/fun-mascot-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fun-mascot-secrets
+                  key: DATABASE_URL
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fun-mascot-secrets
+                  key: ADMIN_PASSWORD
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/public/uploads
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /api/mascots
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/mascots
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fun-mascot-app
+  namespace: fun-mascot
+spec:
+  selector:
+    app: fun-mascot-app
+  ports:
+    - port: 80
+      targetPort: 3000
+
